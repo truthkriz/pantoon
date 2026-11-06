@@ -148,7 +148,7 @@
                     body: JSON.stringify({ mode, style, isi3, isi4 })
                 });
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan');
+                if (!response.ok) throw new Error(data.error || data.errorMessage || data.errorType || ('Status ' + response.status));
 
                 resultDiv.className = '';
                 resultDiv.textContent = "Hasil Pantun:\n\n" + data.pantun;
