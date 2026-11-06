@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Supaya index.html tetap memanggil /api/pantun (tidak perlu diubah)
+[[redirects]]
+  from = "/api/pantun"
+  to = "/.netlify/functions/pantun"
+  status = 200

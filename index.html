@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantoon</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --clay-bg: #e0e5ec;
+            --clay-shadow-outer: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+            --clay-shadow-inner: inset 6px 6px 10px 0 rgba(163,177,198, 0.5), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+            --text-color: #4a5568;
+            --accent-color: #4299e1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: var(--clay-bg);
+            border-radius: 30px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--clay-shadow-outer);
+        }
+        h2 { text-align: center; margin-top: 0; color: var(--text-color); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9em; }
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 15px;
+            background-color: var(--clay-bg);
+            box-shadow: var(--clay-shadow-inner);
+            color: var(--text-color);
+            font-size: 1em;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, select:focus {
+            box-shadow: inset 8px 8px 12px 0 rgba(163,177,198, 0.7), inset -8px -8px 12px 0 rgba(255,255,255, 1);
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background-color: var(--clay-bg);
+            box-shadow: var(--clay-shadow-outer);
+            color: var(--accent-color);
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        button:hover { color: #2b6cb0; }
+        button:active { box-shadow: var(--clay-shadow-inner); }
+        button:disabled { opacity: 0.6; cursor: wait; }
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: var(--clay-bg);
+            box-shadow: var(--clay-shadow-inner);
+            min-height: 100px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            display: none;
+        }
+        .loading { text-align: center; font-style: italic; color: #a0aec0; }
+        .error { color: #e53e3e; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Pembuat Pantun Cerdas</h2>
+
+        <div class="form-group">
+            <label for="mode">Mode Daerah</label>
+            <select id="mode">
+                <option value="Nasional">Nasional</option>
+                <option value="Maluku Utara">Maluku Utara</option>
+                <option value="Sumatera Utara">Sumatera Utara</option>
+                <option value="Aceh">Aceh</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="style">Gaya Bahasa</label>
+            <select id="style">
+                <option value="Formal">Formal</option>
+                <option value="Santai">Santai</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="isi3">Isi (Baris 3)</label>
+            <input type="text" id="isi3" maxlength="120" placeholder="Contoh: Mari kita terus belajar">
+        </div>
+
+        <div class="form-group">
+            <label for="isi4">Isi (Baris 4)</label>
+            <input type="text" id="isi4" maxlength="120" placeholder="Contoh: Agar cerah masa depan">
+        </div>
+
+        <button id="btn" onclick="generatePantun()">Buat Sampiran</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function generatePantun() {
+            const mode = document.getElementById('mode').value;
+            const style = document.getElementById('style').value;
+            const isi3 = document.getElementById('isi3').value.trim();
+            const isi4 = document.getElementById('isi4').value.trim();
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('btn');
+
+            if (!isi3 || !isi4) {
+                alert("Harap isi baris 3 dan 4 pantun!");
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'loading';
+            resultDiv.textContent = 'Membuat sampiran, tunggu sebentar...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/pantun', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode, style, isi3, isi4 })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan');
+
+                resultDiv.className = '';
+                resultDiv.textContent = "Hasil Pantun:\n\n" + data.pantun;
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = 'Gagal membuat pantun: ' + error.message;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
